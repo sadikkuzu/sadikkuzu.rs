@@ -7,12 +7,12 @@ repos:
     -   id: check-yaml
     -   id: check-merge-conflict
     -   id: check-toml
--   repo: https://github.com/doublify/pre-commit-rust
-    rev: v1.0
+-   repo: local
     hooks:
-    -   id: fmt
+    -   id: cargo-fmt
+        name: cargo-fmt
+        description: Format files with cargo fmt.
+        entry: cargo fmt
         language: rust
-    -   id: cargo-check
-        language: rust
-    -   id: clippy
-        language: rust
+        types: [rust]
+        args: ["--"]
