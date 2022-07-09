@@ -7,7 +7,12 @@ repos:
     -   id: check-yaml
     -   id: check-merge-conflict
     -   id: check-toml
--   repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v2.4.0
+-   repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0
     hooks:
-    -   id: pretty-format-rust
+    -   id: fmt
+        language: rust
+    -   id: cargo-check
+        language: rust
+    -   id: clippy
+        language: rust
