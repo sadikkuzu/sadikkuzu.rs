@@ -2,6 +2,7 @@
 
 ## All about Sadık Kuzu
 
+[![Rust](https://github.com/sadikkuzu/sadikkuzu.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/sadikkuzu/sadikkuzu.rs/actions/workflows/rust.yml)
 
 ### Installation
 
