@@ -34,7 +34,7 @@ cargo test
 cargo fmt --check
 cargo clippy -- -D warnings        # must be warning-free
 cargo publish --dry-run            # verify the package before a release
-pre-commit run --all-files         # everything CI / pre-commit.ci checks
+pre-commit run --all-files         # run all local pre-commit hooks
 ```
 
 ## Checks that gate changes
