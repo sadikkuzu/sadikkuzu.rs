@@ -62,6 +62,38 @@ pre-commit run --all-files         # run all local pre-commit hooks
   `0.1.0` … `0.2.0`.
 - Keep the crate dependency-light; don't add crates without a clear need.
 
+## Parallel work with git worktrees
+
+When several agents work on issues at the same time, each one gets its own
+worktree (separate directory + branch, shared `.git`). Never switch branches
+in a directory another agent is using.
+
+```shell
+cd ~/code/myrepos/sadikkuzu.rs
+git switch main && git pull --ff-only
+W=../sadikkuzu.rs.worktrees            # sibling dir, nothing to git-ignore
+git worktree add $W/11 -b test/cli-integration origin/main
+
+cd $W/11
+. ~/code/myrepos/sadikkuzu.rs/renv/bin/activate   # main checkout's renv
+```
+
+- `renv/` is git-ignored, so worktrees don't have it: activate the main
+  checkout's `renv` by absolute path. Don't symlink it into the worktree
+  (the symlink would show up as an untracked file).
+- pre-commit hooks live in the shared `.git/hooks`; `pre-commit install`
+  once in the main checkout covers every worktree.
+- Each worktree has its own `target/`; the first build there is a full one.
+- Only run independent issues in parallel. Issues that touch the same code
+  (e.g. `src/main.rs` refactors) go one after another, each starting from
+  a fresh `origin/main` after the previous PR is merged.
+- After the PR is merged:
+  ```shell
+  git worktree remove ../sadikkuzu.rs.worktrees/11
+  git branch -d test/cli-integration
+  git fetch --prune && git worktree prune
+  ```
+
 ## Releasing (current manual flow)
 
 1. Bump `version` in `Cargo.toml`, run `cargo update -p sadikkuzu`
