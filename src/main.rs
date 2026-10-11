@@ -13,9 +13,9 @@ struct Args {
     #[arg(long, overrides_with = "linkedin")]
     linkedin: bool,
 
-    /// Print twitter link
-    #[arg(long, overrides_with = "twitter")]
-    twitter: bool,
+    /// Print X (Twitter) profile link
+    #[arg(long, alias = "twitter", overrides_with = "x")]
+    x: bool,
 
     /// Print all links
     #[arg(long, overrides_with = "all")]
@@ -30,14 +30,14 @@ fn linkedin() {
     println!("https://linkedin.com/in/sadikkuzu")
 }
 
-fn twitter() {
-    println!("https://twitter.com/sadikkuzu_mba")
+fn x() {
+    println!("https://x.com/sadikkuzu_mba")
 }
 
 fn main() {
     let args = Args::parse();
 
-    if !(args.github || args.linkedin || args.twitter || args.all) {
+    if !(args.github || args.linkedin || args.x || args.all) {
         println!("Aloha, World! This is SADIK KUZU.");
         return;
     }
@@ -50,8 +50,8 @@ fn main() {
         linkedin()
     }
 
-    if args.all || args.twitter {
-        twitter()
+    if args.all || args.x {
+        x()
     }
 }
 

@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `--x` flag: prints the X profile link (#14).
+
 ### Changed
+- X links point to `https://x.com/sadikkuzu_mba` instead of `https://twitter.com/sadikkuzu_mba` (`--x`, `--twitter`, `--all`). `--twitter` still works as a hidden alias of `--x`; `-h` lists `--x` (#14).
 - `-h` no longer shows `...` after each flag: flags are plain on/off switches now. Repeating a flag is still accepted (#13).
 
 ### Fixed
