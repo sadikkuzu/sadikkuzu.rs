@@ -15,3 +15,7 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.0.0", features = ["derive"] }
+
+[dev-dependencies]
+assert_cmd = "2.2.2"
+predicates = "3.1.4"
