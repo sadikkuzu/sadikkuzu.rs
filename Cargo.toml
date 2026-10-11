@@ -2,6 +2,7 @@
 name = "sadikkuzu"
 version = "0.2.0"
 edition = "2021"
+rust-version = "1.85"
 authors = ["Sadık Kuzu <sadikkuzu@hotmail.com>"]
 license = "MIT"
 description = "All about SADIK KUZU"

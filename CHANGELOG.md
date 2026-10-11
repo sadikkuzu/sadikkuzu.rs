@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Declare the minimum supported Rust version (MSRV) as 1.85 via `rust-version` in `Cargo.toml`; CI now builds and tests on 1.85 (#27).
+
 ### Security
 - Bump `anstream` 0.6.4 → 0.6.18 in `Cargo.lock` to fix GHSA-2rxc-gjrp-vjhx; affects `cargo install --locked` (#8).
 
