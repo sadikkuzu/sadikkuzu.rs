@@ -169,5 +169,5 @@ git tag X.Y.Z "$sha" && git push origin X.Y.Z   # then reject the deployment
 cargo publish --locked
 awk -v v=X.Y.Z 'index($0, "## [" v "]") == 1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
 gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file notes.md
-git switch main
+git switch -                                    # back to where you started
 ```
