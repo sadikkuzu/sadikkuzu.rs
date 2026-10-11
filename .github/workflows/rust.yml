@@ -41,6 +41,6 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.85"  # keep in sync with rust-version in Cargo.toml
+          toolchain: "1.85"  # keep in sync with rust-version in Cargo.toml and CONTRIBUTING.md
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --locked

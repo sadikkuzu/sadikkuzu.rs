@@ -8,15 +8,24 @@ small too: one issue, one branch, one pull request.
 - Rust via [rustup](https://rustup.rs). The minimum supported Rust version
   (MSRV) is `rust-version` in `Cargo.toml` (currently 1.85); day-to-day
   work uses stable.
-- [pre-commit](https://pre-commit.com).
-- Optional: [uv](https://docs.astral.sh/uv/), for the project-local
-  toolchain below.
+- [pre-commit](https://pre-commit.com). With [uv](https://docs.astral.sh/uv/):
+  `uv tool install pre-commit` (a persistent install; `uvx pre-commit install`
+  would point the git hook at a temporary environment).
+- Optional: uv, for the project-local toolchain below.
+
+## Setup
+
+```shell
+git clone https://github.com/sadikkuzu/sadikkuzu.rs.git
+cd sadikkuzu.rs
+pre-commit install
+```
 
 ## Optional: project-local toolchain
 
 [rustenv](https://github.com/chriskuehl/rustenv) creates a self-contained
 Rust install in `./renv/` (it git-ignores itself), so updating it doesn't
-touch your global toolchain:
+touch your global toolchain. Run this from the repo root:
 
 ```shell
 uvx rustenv renv
@@ -26,14 +35,6 @@ deactivate_rustenv
 ```
 
 Without `renv/`, a normal rustup install works the same way.
-
-## Setup
-
-```shell
-git clone https://github.com/sadikkuzu/sadikkuzu.rs.git
-cd sadikkuzu.rs
-pre-commit install
-```
 
 ## Development loop
 
@@ -63,8 +64,9 @@ cargo +1.85 test --locked
   `cargo fmt --all --check`,
   `cargo clippy --all-targets --locked -- -D warnings`,
   `cargo test --locked` and `cargo publish --dry-run --locked`. The `msrv`
-  job runs `cargo test --locked` on the MSRV; its `toolchain:` must change
-  together with `rust-version` in `Cargo.toml`.
+  job runs `cargo test --locked` on the MSRV. When the MSRV changes, update
+  `rust-version` in `Cargo.toml`, the job's `toolchain:` and the `1.85`
+  mentions in this file together.
 - `--locked` fails if `Cargo.lock` is out of date, so commit `Cargo.lock`
   with any dependency or version change.
 
@@ -129,8 +131,10 @@ crates.io.
    bottom: `[Unreleased]` compares `X.Y.Z...HEAD`, the new `[X.Y.Z]`
    compares `<previous>...X.Y.Z`.
 3. Commit as `chore(release): X.Y.Z`, open a PR, merge it.
-4. Check the date in the `## [X.Y.Z]` heading is still today, then tag the
-   release PR's merge commit (not whatever `main` is now) and push the tag:
+4. Check the date in the `## [X.Y.Z]` heading is still today; if it isn't,
+   fix it in a follow-up PR first. Then tag the merge commit of the last
+   release PR (the date fix, if any), not whatever `main` is now, and push
+   the tag:
    ```shell
    git fetch origin
    sha=$(gh pr view <PR> --json mergeCommit --jq .mergeCommit.oid)
@@ -152,7 +156,9 @@ cargo publish --dry-run --locked
 git tag X.Y.Z "$sha" && git push origin X.Y.Z   # then reject the deployment
 cargo publish --locked
 awk -v v=X.Y.Z 'index($0, "## [" v "]") == 1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
-gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file notes.md
+grep -q '[^[:space:]]' notes.md &&             # stop if the section is empty
+  gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file notes.md
+rm notes.md
 git switch -                                    # back to where you started
 ```
 
