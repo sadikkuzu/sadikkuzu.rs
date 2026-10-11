@@ -1,31 +1,23 @@
 use clap::Parser;
 
-/// SADIK KUZU
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = None, args_override_self = true)]
 struct Args {
     /// Print GitHub profile link
-    #[arg(long, action = clap::ArgAction::Count)]
-    github: u8,
+    #[arg(long)]
+    github: bool,
 
     /// Print Linkedin profile link
-    #[arg(long, action = clap::ArgAction::Count)]
-    linkedin: u8,
+    #[arg(long)]
+    linkedin: bool,
 
     /// Print twitter link
-    #[arg(long, action = clap::ArgAction::Count)]
-    twitter: u8,
+    #[arg(long)]
+    twitter: bool,
 
     /// Print all links
-    #[arg(long, action = clap::ArgAction::Count)]
-    all: u8,
-}
-
-impl Args {
-    fn argcount(&self) -> u8 {
-        // TODO find a better way to do this
-        self.github + self.linkedin + self.twitter + self.all
-    }
+    #[arg(long)]
+    all: bool,
 }
 
 fn github() {
@@ -40,31 +32,24 @@ fn twitter() {
     println!("https://twitter.com/sadikkuzu_mba")
 }
 
-fn all() {
-    github();
-    linkedin();
-    twitter();
-}
-
 fn main() {
     let args = Args::parse();
 
-    if args.argcount() == 0 {
+    if !(args.github || args.linkedin || args.twitter || args.all) {
         println!("Aloha, World! This is SADIK KUZU.");
-    } else if args.all > 0 {
-        all()
-    } else {
-        if args.github > 0 {
-            github()
-        }
+        return;
+    }
 
-        if args.linkedin > 0 {
-            linkedin()
-        }
+    if args.all || args.github {
+        github()
+    }
 
-        if args.twitter > 0 {
-            twitter()
-        }
+    if args.all || args.linkedin {
+        linkedin()
+    }
+
+    if args.all || args.twitter {
+        twitter()
     }
 }
 

@@ -67,6 +67,13 @@ fn repeated_flag_prints_link_once() {
 }
 
 #[test]
+fn many_repeated_flags_print_links_once() {
+    // Regression: counting flags in a u8 overflowed past 255 occurrences.
+    let args = ["--github", "--linkedin", "--twitter", "--all"].repeat(200);
+    cmd().args(args).assert().success().stdout(all_links());
+}
+
+#[test]
 fn version_flag_prints_version() {
     cmd().arg("-V").assert().success().stdout(concat!(
         "sadikkuzu ",
