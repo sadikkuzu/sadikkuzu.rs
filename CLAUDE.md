@@ -32,7 +32,7 @@ cargo run -- --all                 # run locally
 cargo build
 cargo test
 cargo fmt --check
-cargo clippy -- -D warnings        # must be warning-free
+cargo clippy --all-targets -- -D warnings  # must be warning-free
 cargo publish --dry-run            # verify the package before a release
 pre-commit run --all-files         # run all local pre-commit hooks
 ```
@@ -41,9 +41,9 @@ pre-commit run --all-files         # run all local pre-commit hooks
 
 - **pre-commit** (`.pre-commit-config.yaml`): end-of-file, trailing
   whitespace, YAML/TOML validity, merge conflicts, `cargo fmt`,
-  `cargo check`, `cargo clippy -- -D warnings`. Install with
-  `pre-commit install`. pre-commit.ci skips `cargo-check` and `clippy`
-  (no network there); GitHub Actions covers clippy instead.
+  `cargo check`, `cargo clippy --all-targets -- -D warnings`. Install
+  with `pre-commit install`. pre-commit.ci skips `cargo-check` and
+  `clippy` (no network there); GitHub Actions covers clippy instead.
 - **GitHub Actions** (`.github/workflows/rust.yml`): on pushes and PRs
   to `main`, runs `cargo fmt --all --check`,
   `cargo clippy --all-targets --locked -- -D warnings`,
