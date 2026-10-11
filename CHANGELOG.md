@@ -11,10 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Update `clap` from 4.4 to 4.6 (#25, #26).
-- Declare the minimum supported Rust version (MSRV) as 1.85 via `rust-version` in `Cargo.toml`; CI now builds and tests on 1.85 (#27).
+- Raise the minimum supported Rust version (MSRV) to 1.85, now declared via `rust-version` in `Cargo.toml`; CI now builds and tests on 1.85 (#27).
 
 ### Security
-- Bump `anstream` from 0.6.4 in `Cargo.lock` to fix GHSA-2rxc-gjrp-vjhx (0.6.18 in #8, now 1.0.0 via the `clap` update); affects `cargo install --locked` (#8).
+- Bump `anstream` in `Cargo.lock` from 0.6.4 to 1.0.0 to fix GHSA-2rxc-gjrp-vjhx; affects `cargo install --locked` (#8, #25).
 
 ## [0.2.0] - 2023-09-30
 
