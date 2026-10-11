@@ -1,22 +1,24 @@
 use clap::Parser;
 
+// Each flag overrides itself so repeating it (`--github --github`) is
+// accepted instead of a "cannot be used multiple times" error.
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None, args_override_self = true)]
+#[command(version, about, long_about = None)]
 struct Args {
     /// Print GitHub profile link
-    #[arg(long)]
+    #[arg(long, overrides_with = "github")]
     github: bool,
 
     /// Print Linkedin profile link
-    #[arg(long)]
+    #[arg(long, overrides_with = "linkedin")]
     linkedin: bool,
 
     /// Print twitter link
-    #[arg(long)]
+    #[arg(long, overrides_with = "twitter")]
     twitter: bool,
 
     /// Print all links
-    #[arg(long)]
+    #[arg(long, overrides_with = "all")]
     all: bool,
 }
 

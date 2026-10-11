@@ -68,7 +68,7 @@ fn repeated_flag_prints_link_once() {
 
 #[test]
 fn many_repeated_flags_print_links_once() {
-    // Regression: counting flags in a u8 overflowed past 255 occurrences.
+    // 800 flag occurrences must neither panic nor change the output.
     let args = ["--github", "--linkedin", "--twitter", "--all"].repeat(200);
     cmd().args(args).assert().success().stdout(all_links());
 }
@@ -88,7 +88,9 @@ fn help_flag_lists_options() {
         predicate::str::contains("--github")
             .and(predicate::str::contains("--linkedin"))
             .and(predicate::str::contains("--twitter"))
-            .and(predicate::str::contains("--all")),
+            .and(predicate::str::contains("--all"))
+            // Flags are on/off switches, not counters (no `--github...`).
+            .and(predicate::str::contains("...").not()),
     );
 }
 
