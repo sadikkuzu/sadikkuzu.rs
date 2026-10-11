@@ -22,3 +22,7 @@ sadikkuzu --all
 ```shell
 sadikkuzu -h
 ```
+
+### Changelog
+
+See [CHANGELOG.md](https://github.com/sadikkuzu/sadikkuzu.rs/blob/main/CHANGELOG.md).
