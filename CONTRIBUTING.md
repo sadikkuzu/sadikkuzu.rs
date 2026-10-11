@@ -145,8 +145,8 @@ crates.io.
 Manual fallback (workflow unavailable; needs `cargo login` with a crates.io
 token). Pushing the tag still triggers `release.yml`: reject or cancel that
 run's pending `release` deployment so it can't race the manual publish.
-`cargo publish` packages the working tree, so check out the release PR's
-merge commit first:
+`cargo publish` packages the working tree, so check out the merge commit
+from step 4 first (the release PR's, or the date fix's if there was one):
 
 ```shell
 git fetch origin
@@ -156,8 +156,11 @@ cargo publish --dry-run --locked
 git tag X.Y.Z "$sha" && git push origin X.Y.Z   # then reject the deployment
 cargo publish --locked
 awk -v v=X.Y.Z 'index($0, "## [" v "]") == 1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
-grep -q '[^[:space:]]' notes.md &&             # stop if the section is empty
+if grep -q '[^[:space:]]' notes.md; then
   gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file notes.md
+else
+  echo "no ## [X.Y.Z] section in CHANGELOG.md: GitHub Release not created"
+fi
 rm notes.md
 git switch -                                    # back to where you started
 ```
