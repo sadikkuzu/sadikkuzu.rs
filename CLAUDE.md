@@ -45,9 +45,12 @@ pre-commit run --all-files         # run all local pre-commit hooks
   with `pre-commit install`. pre-commit.ci skips `cargo-check` and
   `clippy` (no network there); GitHub Actions covers clippy instead.
 - **GitHub Actions** (`.github/workflows/rust.yml`): on pushes and PRs
-  to `main`, runs `cargo fmt --all --check`,
+  to `main`, the `check` job runs `cargo fmt --all --check`,
   `cargo clippy --all-targets --locked -- -D warnings`,
-  `cargo test --locked` and `cargo publish --dry-run --locked`.
+  `cargo test --locked` and `cargo publish --dry-run --locked`; the
+  `msrv` job runs `cargo test --locked` on the MSRV (`rust-version` in
+  `Cargo.toml`). Its `toolchain:` must change together with
+  `rust-version`.
   `--locked` fails if `Cargo.lock` is out of date, so commit it with
   any dependency or version change.
 
