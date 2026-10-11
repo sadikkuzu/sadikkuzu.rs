@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-11
+
 ### Added
 - `--x` flag: prints the X profile link (#14).
 
@@ -49,7 +51,8 @@ No user-facing changes.
 ### Added
 - Initial release: `sadikkuzu` CLI with `--github`, `--linkedin`, `--twitter` and `--all` flags.
 
-[Unreleased]: https://github.com/sadikkuzu/sadikkuzu.rs/compare/0.2.1...HEAD
+[Unreleased]: https://github.com/sadikkuzu/sadikkuzu.rs/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/sadikkuzu/sadikkuzu.rs/compare/0.2.1...0.3.0
 [0.2.1]: https://github.com/sadikkuzu/sadikkuzu.rs/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/sadikkuzu/sadikkuzu.rs/compare/0.1.3...0.2.0
 [0.1.3]: https://github.com/sadikkuzu/sadikkuzu.rs/compare/0.1.2...0.1.3
