@@ -60,6 +60,13 @@ pre-commit run --all-files         # run all local pre-commit hooks
   minor version.
 - **Tags:** plain `X.Y.Z` (no `v` prefix), matching existing tags
   `0.1.0` … `0.2.0`.
+- **Changelog:** `CHANGELOG.md` follows
+  [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Every PR
+  with a user-visible change adds a bullet under `## [Unreleased]`, in the
+  matching `### Added` / `Changed` / `Deprecated` / `Removed` / `Fixed` /
+  `Security` group (create the group if missing), ending with the PR or
+  issue number, e.g. `(#14)`. Pure CI, tooling or docs-for-contributors
+  changes don't need an entry.
 - Keep the crate dependency-light; don't add crates without a clear need.
 
 ## Parallel work with git worktrees
@@ -117,10 +124,16 @@ git push -u origin HEAD                # first push; plain `git push` after
 ## Releasing (current manual flow)
 
 1. Bump `version` in `Cargo.toml`, run `cargo update -p sadikkuzu`
-   so `Cargo.lock` matches, commit as `chore(release): X.Y.Z`.
-2. `cargo publish --dry-run`, then tag `X.Y.Z` and push the tag.
-3. `cargo publish` (needs `cargo login` with a crates.io token).
-4. Create the GitHub Release for the tag.
+   so `Cargo.lock` matches.
+2. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`,
+   add a fresh empty `## [Unreleased]` above it, and update the links at the
+   bottom: `[Unreleased]` compares `X.Y.Z...HEAD`, the new `[X.Y.Z]`
+   compares `<previous>...X.Y.Z`.
+3. Commit as `chore(release): X.Y.Z`.
+4. `cargo publish --dry-run`, then tag `X.Y.Z` and push the tag.
+5. `cargo publish` (needs `cargo login` with a crates.io token).
+6. Create the GitHub Release for the tag, using the `## [X.Y.Z]` section
+   of `CHANGELOG.md` as the release notes.
 
-Check the open issues before changing this flow: there are plans for a
-CHANGELOG and an automated publish workflow.
+Check the open issues before changing this flow: there are plans for an
+automated publish workflow.
