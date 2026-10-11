@@ -2,22 +2,22 @@ use clap::Parser;
 
 /// SADIK KUZU
 #[derive(Parser, Debug)]
-#[clap(version, about, long_about = None)]
+#[command(version, about, long_about = None)]
 struct Args {
     /// Print GitHub profile link
-    #[clap(long, action = clap::ArgAction::Count)]
+    #[arg(long, action = clap::ArgAction::Count)]
     github: u8,
 
     /// Print Linkedin profile link
-    #[clap(long, action = clap::ArgAction::Count)]
+    #[arg(long, action = clap::ArgAction::Count)]
     linkedin: u8,
 
     /// Print twitter link
-    #[clap(long, action = clap::ArgAction::Count)]
+    #[arg(long, action = clap::ArgAction::Count)]
     twitter: u8,
 
     /// Print all links
-    #[clap(long, action = clap::ArgAction::Count)]
+    #[arg(long, action = clap::ArgAction::Count)]
     all: u8,
 }
 
