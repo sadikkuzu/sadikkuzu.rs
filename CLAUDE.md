@@ -10,7 +10,8 @@ Guidance for AI coding agents working in this repository.
 - Single binary crate, all code in `src/main.rs`.
 - Only dependency: `clap` v4 with the `derive` feature.
 - Running with no flags prints a greeting; `--github`, `--linkedin`,
-  `--twitter`, `--all` print links. `-h` / `-V` come from clap.
+  `--x` (alias `--twitter`), `--all` print links. `-h` / `-V` come from
+  clap.
 
 Human-facing process lives in [CONTRIBUTING.md](CONTRIBUTING.md): setup,
 dev loop, what gates a PR, commit/branch/changelog conventions, versioning
