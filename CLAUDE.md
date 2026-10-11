@@ -157,10 +157,17 @@ crates.io token). Pushing the tag still triggers `release.yml`: reject or
 cancel that run's pending `release` deployment so it can't race the
 manual publish.
 
+`cargo publish` packages the working tree, so check out the release PR's
+merge commit first:
+
 ```shell
+git fetch origin
+sha=$(gh pr view <PR> --json mergeCommit --jq .mergeCommit.oid)
+git switch --detach "$sha"
 cargo publish --dry-run --locked
 git tag X.Y.Z "$sha" && git push origin X.Y.Z   # then reject the deployment
 cargo publish --locked
 awk -v v=X.Y.Z 'index($0, "## [" v "]") == 1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
 gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file notes.md
+git switch main
 ```
