@@ -103,6 +103,8 @@ fn help_flag_lists_options() {
             .and(predicate::str::contains("--linkedin"))
             .and(predicate::str::contains("--x "))
             .and(predicate::str::contains("Print X (Twitter) profile link"))
+            // `--twitter` is a hidden alias of `--x`.
+            .and(predicate::str::contains("--twitter").not())
             .and(predicate::str::contains("--all"))
             // Flags are on/off switches, not counters (no `--github...`).
             .and(predicate::str::contains("...").not()),
