@@ -128,19 +128,49 @@ git push -u origin HEAD                # first push; plain `git push` after
   git worktree prune
   ```
 
-## Releasing (current manual flow)
+## Releasing
 
-1. Bump `version` in `Cargo.toml`, run `cargo update -p sadikkuzu`
-   so `Cargo.lock` matches.
+Pushing a tag `X.Y.Z` runs `.github/workflows/release.yml`: it checks the
+tagged commit is on `main` and the tag matches `Cargo.toml`, runs the
+tests, publishes to crates.io via Trusted Publishing (GitHub OIDC, no
+stored token) and creates the GitHub Release with the `## [X.Y.Z]` section
+of `CHANGELOG.md` as notes. The job runs in the `release` environment, so
+a deployment approval may be needed. If only the GitHub Release step
+failed, "Re-run job" is safe: publishing is skipped when the version is
+already on crates.io.
+
+1. On a branch `chore/release-X.Y.Z`: bump `version` in `Cargo.toml`, run
+   `cargo update -p sadikkuzu` so `Cargo.lock` matches.
 2. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`,
    add a fresh empty `## [Unreleased]` above it, and update the links at the
    bottom: `[Unreleased]` compares `X.Y.Z...HEAD`, the new `[X.Y.Z]`
    compares `<previous>...X.Y.Z`.
-3. Commit as `chore(release): X.Y.Z`.
-4. `cargo publish --dry-run`, then tag `X.Y.Z` and push the tag.
-5. `cargo publish` (needs `cargo login` with a crates.io token).
-6. Create the GitHub Release for the tag, using the `## [X.Y.Z]` section
-   of `CHANGELOG.md` as the release notes.
+3. Commit as `chore(release): X.Y.Z`, open a PR, merge it.
+4. Tag the release PR's merge commit (not whatever `main` is now) and push
+   the tag:
+   ```shell
+   git fetch origin
+   sha=$(gh pr view <PR> --json mergeCommit --jq .mergeCommit.oid)
+   git tag X.Y.Z "$sha" && git push origin X.Y.Z
+   ```
+5. Approve the `release` deployment in the Actions run if asked.
 
-Check the open issues before changing this flow: there are plans for an
-automated publish workflow.
+Manual fallback (workflow unavailable; needs `cargo login` with a
+crates.io token). Pushing the tag still triggers `release.yml`: reject or
+cancel that run's pending `release` deployment so it can't race the
+manual publish.
+
+`cargo publish` packages the working tree, so check out the release PR's
+merge commit first:
+
+```shell
+git fetch origin
+sha=$(gh pr view <PR> --json mergeCommit --jq .mergeCommit.oid)
+git switch --detach "$sha"
+cargo publish --dry-run --locked
+git tag X.Y.Z "$sha" && git push origin X.Y.Z   # then reject the deployment
+cargo publish --locked
+awk -v v=X.Y.Z 'index($0, "## [" v "]") == 1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
+gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file notes.md
+git switch -                                    # back to where you started
+```
