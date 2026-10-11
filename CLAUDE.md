@@ -125,19 +125,34 @@ git push -u origin HEAD                # first push; plain `git push` after
   git worktree prune
   ```
 
-## Releasing (current manual flow)
+## Releasing
 
-1. Bump `version` in `Cargo.toml`, run `cargo update -p sadikkuzu`
-   so `Cargo.lock` matches.
+Pushing a tag `X.Y.Z` runs `.github/workflows/release.yml`: it checks the
+tag matches `Cargo.toml`, runs the tests, publishes to crates.io via
+Trusted Publishing (GitHub OIDC, no stored token) and creates the GitHub
+Release with the `## [X.Y.Z]` section of `CHANGELOG.md` as notes. The job
+runs in the `release` environment, so a deployment approval may be needed.
+
+1. On a branch `chore/release-X.Y.Z`: bump `version` in `Cargo.toml`, run
+   `cargo update -p sadikkuzu` so `Cargo.lock` matches.
 2. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`,
    add a fresh empty `## [Unreleased]` above it, and update the links at the
    bottom: `[Unreleased]` compares `X.Y.Z...HEAD`, the new `[X.Y.Z]`
    compares `<previous>...X.Y.Z`.
-3. Commit as `chore(release): X.Y.Z`.
-4. `cargo publish --dry-run`, then tag `X.Y.Z` and push the tag.
-5. `cargo publish` (needs `cargo login` with a crates.io token).
-6. Create the GitHub Release for the tag, using the `## [X.Y.Z]` section
-   of `CHANGELOG.md` as the release notes.
+3. Commit as `chore(release): X.Y.Z`, open a PR, merge it.
+4. Tag the merge commit and push the tag:
+   ```shell
+   git switch main && git pull --ff-only
+   git tag X.Y.Z && git push origin X.Y.Z
+   ```
+5. Approve the `release` deployment in the Actions run if asked.
 
-Check the open issues before changing this flow: there are plans for an
-automated publish workflow.
+Manual fallback (workflow unavailable; needs `cargo login` with a
+crates.io token):
+
+```shell
+cargo publish --dry-run --locked
+git tag X.Y.Z && git push origin X.Y.Z
+cargo publish --locked
+gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file <notes>
+```
