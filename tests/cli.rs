@@ -58,15 +58,21 @@ fn multiple_flags_print_in_fixed_order() {
 }
 
 #[test]
-fn version_flag_prints_version() {
+fn repeated_flag_prints_link_once() {
     cmd()
-        .arg("-V")
+        .args(["--github", "--github"])
         .assert()
         .success()
-        .stdout(predicate::str::starts_with(concat!(
-            "sadikkuzu ",
-            env!("CARGO_PKG_VERSION")
-        )));
+        .stdout(GITHUB);
+}
+
+#[test]
+fn version_flag_prints_version() {
+    cmd().arg("-V").assert().success().stdout(concat!(
+        "sadikkuzu ",
+        env!("CARGO_PKG_VERSION"),
+        "\n"
+    ));
 }
 
 #[test]
@@ -84,6 +90,6 @@ fn unknown_flag_fails() {
     cmd()
         .arg("--nope")
         .assert()
-        .failure()
+        .code(2)
         .stderr(predicate::str::contains("unexpected argument"));
 }
