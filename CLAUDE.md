@@ -48,9 +48,9 @@ pre-commit run --all-files         # run all local pre-commit hooks
   to `main`, the `check` job runs `cargo fmt --all --check`,
   `cargo clippy --all-targets --locked -- -D warnings`,
   `cargo test --locked` and `cargo publish --dry-run --locked`; the
-  `msrv` job runs `cargo test --locked` on Rust 1.85 (the MSRV). Its
-  `toolchain: "1.85"` must change together with `rust-version` in
-  `Cargo.toml`.
+  `msrv` job runs `cargo test --locked` on the MSRV (`rust-version` in
+  `Cargo.toml`). Its `toolchain:` must change together with
+  `rust-version`.
   `--locked` fails if `Cargo.lock` is out of date, so commit it with
   any dependency or version change.
 
