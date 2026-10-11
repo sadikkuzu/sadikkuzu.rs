@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `-h` no longer shows `...` after each flag: flags are plain on/off switches now. Repeating a flag is still accepted (#13).
 
 ### Fixed
-- Passing flags more than 255 times in total no longer panics in debug builds; in release builds it printed the greeting instead of the links when the total was a multiple of 256 (#13).
+- Combining several flags hundreds of times no longer panics in debug builds or prints the greeting instead of the links in release builds (#13).
 
 ## [0.2.1] - 2026-10-11
 
