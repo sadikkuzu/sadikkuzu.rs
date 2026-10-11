@@ -69,17 +69,18 @@ worktree (separate directory + branch, shared `.git`). Never switch branches
 in a directory another agent is using.
 
 ```shell
-cd ~/code/myrepos/sadikkuzu.rs
+# from the root of the main checkout
 git switch main && git pull --ff-only
 W=../sadikkuzu.rs.worktrees            # sibling dir, nothing to git-ignore
 git worktree add $W/11 -b test/cli-integration origin/main
 
 cd $W/11
-. ~/code/myrepos/sadikkuzu.rs/renv/bin/activate   # main checkout's renv
+# activate the main checkout's renv (resolved from the shared .git dir)
+. "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")/renv/bin/activate"
 ```
 
 - `renv/` is git-ignored, so worktrees don't have it: activate the main
-  checkout's `renv` by absolute path. Don't symlink it into the worktree
+  checkout's `renv` as shown above. Don't symlink it into the worktree
   (the symlink would show up as an untracked file).
 - pre-commit hooks live in the shared `.git/hooks`; `pre-commit install`
   once in the main checkout covers every worktree.
