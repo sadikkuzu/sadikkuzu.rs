@@ -12,69 +12,31 @@ Guidance for AI coding agents working in this repository.
 - Running with no flags prints a greeting; `--github`, `--linkedin`,
   `--twitter`, `--all` print links. `-h` / `-V` come from clap.
 
+Human-facing process lives in [CONTRIBUTING.md](CONTRIBUTING.md): setup,
+dev loop, what gates a PR, commit/branch/changelog conventions, versioning
+and the release flow. Read it before committing or releasing. This file only
+adds what agents need on top.
+
+## Must-follow rules (details in CONTRIBUTING.md)
+
+- One issue → one branch `<type>/<short-topic>` from `main` → one PR with
+  `Closes #N`. Never push to `main`.
+- Conventional Commits; `!` / `BREAKING CHANGE:` for user-visible CLI breaks.
+- User-visible change → bullet under `## [Unreleased]` in `CHANGELOG.md`.
+- `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`
+  must pass; commit `Cargo.lock` with dependency or version changes.
+- Keep the crate dependency-light.
+
 ## Toolchain
 
-A project-local Rust toolchain lives in `./renv/` (created with
-[rustenv](https://github.com/chriskuehl/rustenv); it git-ignores itself).
+The main checkout has a project-local Rust toolchain in `./renv/` (see
+CONTRIBUTING.md). Activate it before `cargo`:
 
 ```shell
-. ./renv/bin/activate      # puts renv's cargo/rustc/rustup first on PATH
-rustup update stable       # updates only the toolchain inside renv/
-deactivate_rustenv
+. ./renv/bin/activate
 ```
 
 If `renv/` is missing, plain `cargo` from a system rustup install works too.
-
-## Common commands
-
-```shell
-cargo run -- --all                 # run locally
-cargo build
-cargo test
-cargo fmt --check
-cargo clippy --all-targets -- -D warnings  # must be warning-free
-cargo publish --dry-run            # verify the package before a release
-pre-commit run --all-files         # run all local pre-commit hooks
-```
-
-## Checks that gate changes
-
-- **pre-commit** (`.pre-commit-config.yaml`): end-of-file, trailing
-  whitespace, YAML/TOML validity, merge conflicts, `cargo fmt`,
-  `cargo check`, `cargo clippy --all-targets -- -D warnings`. Install
-  with `pre-commit install`. pre-commit.ci skips `cargo-check` and
-  `clippy` (no network there); GitHub Actions covers clippy instead.
-- **GitHub Actions** (`.github/workflows/rust.yml`): on pushes and PRs
-  to `main`, the `check` job runs `cargo fmt --all --check`,
-  `cargo clippy --all-targets --locked -- -D warnings`,
-  `cargo test --locked` and `cargo publish --dry-run --locked`; the
-  `msrv` job runs `cargo test --locked` on the MSRV (`rust-version` in
-  `Cargo.toml`). Its `toolchain:` must change together with
-  `rust-version`.
-  `--locked` fails if `Cargo.lock` is out of date, so commit it with
-  any dependency or version change.
-
-## Conventions
-
-- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/)
-  (`feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `refactor:`, `test:`,
-  `build:`). Use `!` / `BREAKING CHANGE:` for user-visible CLI breaks.
-- **Branches & PRs:** one branch and one PR per issue, branched from
-  `main`, named `<type>/<short-topic>` (e.g. `ci/release-workflow`).
-  Reference the issue in the PR body (`Closes #N`). Do not push to `main`
-  directly.
-- **Versioning:** SemVer. While on `0.x`, breaking CLI changes bump the
-  minor version.
-- **Tags:** plain `X.Y.Z` (no `v` prefix), matching existing tags
-  `0.1.0` … `0.2.0`.
-- **Changelog:** `CHANGELOG.md` follows
-  [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Every PR
-  with a user-visible change adds a bullet under `## [Unreleased]`, in the
-  matching `### Added` / `Changed` / `Deprecated` / `Removed` / `Fixed` /
-  `Security` group (create the group if missing), ending with the PR or
-  issue number, e.g. `(#14)`. Pure CI, tooling or docs-for-contributors
-  changes don't need an entry.
-- Keep the crate dependency-light; don't add crates without a clear need.
 
 ## Parallel work with git worktrees
 
@@ -130,47 +92,6 @@ git push -u origin HEAD                # first push; plain `git push` after
 
 ## Releasing
 
-Pushing a tag `X.Y.Z` runs `.github/workflows/release.yml`: it checks the
-tagged commit is on `main` and the tag matches `Cargo.toml`, runs the
-tests, publishes to crates.io via Trusted Publishing (GitHub OIDC, no
-stored token) and creates the GitHub Release with the `## [X.Y.Z]` section
-of `CHANGELOG.md` as notes. The job runs in the `release` environment, so
-a deployment approval may be needed. If only the GitHub Release step
-failed, "Re-run job" is safe: publishing is skipped when the version is
-already on crates.io.
-
-1. On a branch `chore/release-X.Y.Z`: bump `version` in `Cargo.toml`, run
-   `cargo update -p sadikkuzu` so `Cargo.lock` matches.
-2. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`,
-   add a fresh empty `## [Unreleased]` above it, and update the links at the
-   bottom: `[Unreleased]` compares `X.Y.Z...HEAD`, the new `[X.Y.Z]`
-   compares `<previous>...X.Y.Z`.
-3. Commit as `chore(release): X.Y.Z`, open a PR, merge it.
-4. Tag the release PR's merge commit (not whatever `main` is now) and push
-   the tag:
-   ```shell
-   git fetch origin
-   sha=$(gh pr view <PR> --json mergeCommit --jq .mergeCommit.oid)
-   git tag X.Y.Z "$sha" && git push origin X.Y.Z
-   ```
-5. Approve the `release` deployment in the Actions run if asked.
-
-Manual fallback (workflow unavailable; needs `cargo login` with a
-crates.io token). Pushing the tag still triggers `release.yml`: reject or
-cancel that run's pending `release` deployment so it can't race the
-manual publish.
-
-`cargo publish` packages the working tree, so check out the release PR's
-merge commit first:
-
-```shell
-git fetch origin
-sha=$(gh pr view <PR> --json mergeCommit --jq .mergeCommit.oid)
-git switch --detach "$sha"
-cargo publish --dry-run --locked
-git tag X.Y.Z "$sha" && git push origin X.Y.Z   # then reject the deployment
-cargo publish --locked
-awk -v v=X.Y.Z 'index($0, "## [" v "]") == 1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
-gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file notes.md
-git switch -                                    # back to where you started
-```
+Follow "Versioning and releases" in CONTRIBUTING.md. Pushing a tag starts a
+crates.io publish, so tag only when the user asks, after checking the date in
+the `## [X.Y.Z]` heading and that `main` CI is green on the merge commit.

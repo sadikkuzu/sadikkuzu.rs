@@ -23,6 +23,10 @@ sadikkuzu --all
 sadikkuzu -h
 ```
 
+### Contributing
+
+See [CONTRIBUTING.md](https://github.com/sadikkuzu/sadikkuzu.rs/blob/main/CONTRIBUTING.md).
+
 ### Changelog
 
 See [CHANGELOG.md](https://github.com/sadikkuzu/sadikkuzu.rs/blob/main/CHANGELOG.md).
