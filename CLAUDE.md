@@ -68,31 +68,50 @@ When several agents work on issues at the same time, each one gets its own
 worktree (separate directory + branch, shared `.git`). Never switch branches
 in a directory another agent is using.
 
-```shell
-# from the root of the main checkout
-git switch main && git pull --ff-only
-W=../sadikkuzu.rs.worktrees            # sibling dir, nothing to git-ignore
-git worktree add $W/11 -b test/cli-integration origin/main
+Create a worktree (from the root of the main checkout):
 
-cd $W/11
-# activate the main checkout's renv (resolved from the shared .git dir)
-. "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")/renv/bin/activate"
+```shell
+W=../sadikkuzu.rs.worktrees            # sibling dir, nothing to git-ignore
+git fetch origin
+git worktree add --no-track $W/11 -b test/cli-integration origin/main
+```
+
+Work inside it:
+
+```shell
+cd ../sadikkuzu.rs.worktrees/11
+# activate the main checkout's renv (located via the shared .git dir)
+. "$(dirname "$(git rev-parse --git-common-dir)")/renv/bin/activate"
+cargo test
+git push -u origin HEAD                # first push; plain `git push` after
 ```
 
 - `renv/` is git-ignored, so worktrees don't have it: activate the main
   checkout's `renv` as shown above. Don't symlink it into the worktree
   (the symlink would show up as an untracked file).
-- pre-commit hooks live in the shared `.git/hooks`; `pre-commit install`
-  once in the main checkout covers every worktree.
+- If your shell doesn't keep state between commands (e.g. Claude Code's
+  Bash tool keeps only the cwd), source `activate` in the same command as
+  `cargo`, e.g. `. "<path>/renv/bin/activate" && cargo test`.
+- `--no-track` keeps `origin/main` from becoming the branch's upstream;
+  otherwise `git push` is rejected and `git status` reports
+  "ahead of origin/main".
+- pre-commit hooks live in the shared `.git/hooks` (unless `core.hooksPath`
+  is set); `pre-commit install` once in the main checkout covers every
+  worktree. The cargo hooks use whatever `cargo` is on `PATH` in the shell
+  running `git commit`, so activate `renv` there too.
 - Each worktree has its own `target/`; the first build there is a full one.
+  All worktrees share renv's `CARGO_HOME`, so parallel builds may briefly
+  print "Blocking waiting for file lock on package cache".
 - Only run independent issues in parallel. Issues that touch the same code
   (e.g. `src/main.rs` refactors) go one after another, each starting from
   a fresh `origin/main` after the previous PR is merged.
-- After the PR is merged:
+- After the PR is merged, from the main checkout (on `main`):
   ```shell
-  git worktree remove ../sadikkuzu.rs.worktrees/11
-  git branch -d test/cli-integration
-  git fetch --prune && git worktree prune
+  W=../sadikkuzu.rs.worktrees
+  git worktree remove $W/11
+  git pull --ff-only --prune           # local main must contain the merge
+  git branch -d test/cli-integration   # refused if main is stale
+  git worktree prune
   ```
 
 ## Releasing (current manual flow)
