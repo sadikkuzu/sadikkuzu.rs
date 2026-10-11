@@ -17,11 +17,18 @@ jobs:
     permissions:
       contents: write  # create the GitHub Release
       id-token: write  # OIDC for crates.io Trusted Publishing
+    # Actions are pinned to commit SHAs: this job can mint a crates.io
+    # publish token. Dependabot keeps the pins and comments up to date.
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
+          fetch-depth: 0  # needed for the "tag is on main" check
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust (preinstalled rustup, no third-party action)
+        run: rustup toolchain install stable --profile minimal --no-self-update && rustup default stable
+      - name: Check tagged commit is on main
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "tag $GITHUB_REF_NAME ($GITHUB_SHA) is not on main"; exit 1; }
       - name: Check tag matches Cargo.toml version
         run: |
           version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
@@ -31,9 +38,20 @@ jobs:
           awk -v v="$GITHUB_REF_NAME" 'index($0, "## [" v "]") == 1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
           grep -q '[^[:space:]]' notes.md || { echo "no '## [$GITHUB_REF_NAME]' section in CHANGELOG.md"; exit 1; }
       - run: cargo test --locked
-      - uses: rust-lang/crates-io-auth-action@v1
+      # Lets "Re-run job" finish the GitHub Release if a previous run
+      # already published this version.
+      - name: Check if already on crates.io
+        id: crates
+        run: |
+          if curl -fsS -o /dev/null -A "sadikkuzu-release (https://github.com/sadikkuzu/sadikkuzu.rs)" \
+              "https://crates.io/api/v1/crates/sadikkuzu/$GITHUB_REF_NAME"; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18  # v1.0.5
+        if: steps.crates.outputs.published != 'true'
         id: auth
       - run: cargo publish --locked
+        if: steps.crates.outputs.published != 'true'
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
       - name: Create GitHub Release

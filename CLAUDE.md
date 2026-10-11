@@ -128,10 +128,13 @@ git push -u origin HEAD                # first push; plain `git push` after
 ## Releasing
 
 Pushing a tag `X.Y.Z` runs `.github/workflows/release.yml`: it checks the
-tag matches `Cargo.toml`, runs the tests, publishes to crates.io via
-Trusted Publishing (GitHub OIDC, no stored token) and creates the GitHub
-Release with the `## [X.Y.Z]` section of `CHANGELOG.md` as notes. The job
-runs in the `release` environment, so a deployment approval may be needed.
+tagged commit is on `main` and the tag matches `Cargo.toml`, runs the
+tests, publishes to crates.io via Trusted Publishing (GitHub OIDC, no
+stored token) and creates the GitHub Release with the `## [X.Y.Z]` section
+of `CHANGELOG.md` as notes. The job runs in the `release` environment, so
+a deployment approval may be needed. If only the GitHub Release step
+failed, "Re-run job" is safe: publishing is skipped when the version is
+already on crates.io.
 
 1. On a branch `chore/release-X.Y.Z`: bump `version` in `Cargo.toml`, run
    `cargo update -p sadikkuzu` so `Cargo.lock` matches.
@@ -140,19 +143,24 @@ runs in the `release` environment, so a deployment approval may be needed.
    bottom: `[Unreleased]` compares `X.Y.Z...HEAD`, the new `[X.Y.Z]`
    compares `<previous>...X.Y.Z`.
 3. Commit as `chore(release): X.Y.Z`, open a PR, merge it.
-4. Tag the merge commit and push the tag:
+4. Tag the release PR's merge commit (not whatever `main` is now) and push
+   the tag:
    ```shell
-   git switch main && git pull --ff-only
-   git tag X.Y.Z && git push origin X.Y.Z
+   git fetch origin
+   sha=$(gh pr view <PR> --json mergeCommit --jq .mergeCommit.oid)
+   git tag X.Y.Z "$sha" && git push origin X.Y.Z
    ```
 5. Approve the `release` deployment in the Actions run if asked.
 
 Manual fallback (workflow unavailable; needs `cargo login` with a
-crates.io token):
+crates.io token). Pushing the tag still triggers `release.yml`: reject or
+cancel that run's pending `release` deployment so it can't race the
+manual publish.
 
 ```shell
 cargo publish --dry-run --locked
-git tag X.Y.Z && git push origin X.Y.Z
+git tag X.Y.Z "$sha" && git push origin X.Y.Z   # then reject the deployment
 cargo publish --locked
-gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file <notes>
+awk -v v=X.Y.Z 'index($0, "## [" v "]") == 1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
+gh release create X.Y.Z --title X.Y.Z --verify-tag --notes-file notes.md
 ```
